@@ -143,15 +143,46 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
+configmap:
+  enabled: true
+  configFile: |
+    {{ if not (empty .Values.project) }}
+    upstream django {
+        server django.{{ .Values.project }}.svc.cluster.local:8000;
+    }
+
+
+    server {
+
+        listen {{ .Values.service.targetPort }};
+    
+        server_name = $hostname;
+
+        location / {
+            proxy_pass http://django;
+            proxy_redirect off;
+        }
+
+    }
+    {{ else }}
+    # placeholder
+    {{- end }}
+
 # Additional volumes on the output Deployment definition.
-volumes: []
+volumes:
+- name: app-config
+  configMap:
+    name: nginx-configmap
 # - name: foo
 #   secret:
 #     secretName: mysecret
 #     optional: false
 
 # Additional volumeMounts on the output Deployment definition.
-volumeMounts: []
+volumeMounts:
+- name: app-config
+  mountPath: /etc/nginx.conf
+  subPath: nginx.conf
 # - name: foo
 #   mountPath: "/etc/foo"
 #   readOnly: true

@@ -1,0 +1,12 @@
+{{- if .Values.configmap.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-configmap
+  labels:
+    {{- include "nginx.labels" . | nindent 4 }}
+data:
+  nginx.conf: |
+{{ tpl .Values.configmap.configFile . | toString | indent 4 }}
+{{- end }}
+ 
